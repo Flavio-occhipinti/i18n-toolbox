@@ -1,9 +1,18 @@
 {
-	"name": "i18n",
-	"displayName": "Translator",
-	"description": "",
+	"name": "i18n-toolbox",
+	"displayName": "I18n Toolbox",
+	"description": "Extension vs code which allows to be more productive with i18n",
 	"icon": "ressources/extension-icon.png",
+	"publisher": "Flavio-occhipinti",
 	"version": "0.1.0",
+	"author": {
+		"name": "Flavio Occhipinti",
+		"email": "flavio.occhipinti.96@gmail.com"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/Flavio-occhipinti/i18n-toolbox.git"
+	  },
 	"engines": {
 		"vscode": "^1.34.0"
 	},
