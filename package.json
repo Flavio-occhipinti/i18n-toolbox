@@ -4,7 +4,7 @@
 	"description": "Extension vs code which allows to be more productive with i18n",
 	"icon": "ressources/extension-icon.png",
 	"publisher": "Flavio-occhipinti",
-	"version": "0.1.0",
+	"version": "0.2.0",
 	"author": {
 		"name": "Flavio Occhipinti",
 		"email": "flavio.occhipinti.96@gmail.com"
@@ -12,7 +12,7 @@
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/Flavio-occhipinti/i18n-toolbox.git"
-	  },
+	},
 	"engines": {
 		"vscode": "^1.34.0"
 	},
