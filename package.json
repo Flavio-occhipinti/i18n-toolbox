@@ -20,7 +20,7 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:extension.openLangKey",
+		"onCommand:i18n-tooblox.refresh",
 		"workspaceContains:*.i18n.json"
 	],
 	"main": "./out/extension.js",
@@ -28,8 +28,8 @@
 		"views": {
 			"package-explorer": [
 				{
-					"id": "translator",
-					"name": "translator"
+					"id": "i18n-tooblox",
+					"name": "Explorer"
 				}
 			]
 		},
@@ -38,51 +38,51 @@
 				{
 					"icon": "ressources/testicon.png",
 					"id": "package-explorer",
-					"title": "Translator"
+					"title": "i18n Tooblox"
 				}
 			]
 		},
 		"commands": [
 			{
-				"command": "extension.openLangKey",
+				"command": "i18n_toolbox.openLangKey",
 				"title": "Open lang"
 			},
 			{
-				"command": "extension.addChild",
+				"command": "i18n_toolbox.addChild",
 				"title": "Add child",
 				"icon": "ressources/plus.png"
 			},
 			{
-				"command": "extension.rename",
+				"command": "i18n_toolbox.rename",
 				"title": "Rename",
 				"icon": "ressources/pencil.png"
 			},
 			{
-				"command": "extension.refresh",
-				"title": "refresh",
+				"command": "i18n_toolbox.refresh",
+				"title": "Refresh i18n Tooblox",
 				"icon": "ressources/sync.png"
 			}
 		],
 		"menus": {
 			"commandPalette": [
 				{
-					"command": "extension.refresh"
+					"command": "i18n_toolbox.refresh"
 				}
 			],
 			"view/item/context": [
 				{
-					"command": "extension.addChild",
+					"command": "i18n_toolbox.addChild",
 					"group": "inline",
 					"when": "viewItem == folder"
 				},
 				{
-					"command": "extension.rename",
+					"command": "i18n_toolbox.rename",
 					"group": "inline"
 				}
 			],
 			"view/title": [
 				{
-					"command": "extension.refresh",
+					"command": "i18n_toolbox.refresh",
 					"group": "navigation"
 				}
 			]

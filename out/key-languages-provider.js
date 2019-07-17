@@ -43,8 +43,8 @@ class KeyLanguagesProvider {
             return Object.keys(langJson).map(key => {
                 if (typeof langJson[key] === 'string') {
                     return new key_languages_item_1.KeyLanguagesItem(key, vscode_1.TreeItemCollapsibleState.None, jsonPath || "", {
-                        command: 'extension.openLangKey',
-                        title: 'open key',
+                        command: 'i18n_toolbox.openLangKey',
+                        title: 'Open Languages Key',
                         arguments: [jsonPath + "." + key]
                     });
                 }

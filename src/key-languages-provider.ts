@@ -44,8 +44,8 @@ export class KeyLanguagesProvider implements TreeDataProvider<KeyLanguagesItem> 
             return Object.keys(langJson).map(key => {
                 if (typeof langJson[key] === 'string') {
                     return new KeyLanguagesItem(key, TreeItemCollapsibleState.None, jsonPath || "", {
-						command: 'extension.openLangKey',
-						title: 'open key',
+						command: 'i18n_toolbox.openLangKey',
+						title: 'Open Languages Key',
 						arguments: [jsonPath + "." +key]
 					});
                 }

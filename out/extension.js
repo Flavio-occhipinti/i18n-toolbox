@@ -15,7 +15,7 @@ const edit_panel_1 = require("./edit-panel");
 const utils_1 = require("./utils");
 // this method is called when the extension is activated ( the very first time the command is executed)
 function activate(context) {
-    const viewId = 'translator';
+    const viewId = 'i18n-tooblox';
     let languagesFilesUrl;
     const config = {
         i18nFolder: '',
@@ -23,19 +23,19 @@ function activate(context) {
         defaultLanguage: ''
     };
     findFilesAndParseJson();
-    vscode_1.commands.registerCommand('extension.addChild', (treeViewItem) => {
+    vscode_1.commands.registerCommand('i18n_toolbox.addChild', (treeViewItem) => {
         addChildKey(treeViewItem).then(childJsonPath => {
-            vscode_1.commands.executeCommand('extension.refresh');
-            vscode_1.commands.executeCommand('extension.openLangKey', childJsonPath);
+            vscode_1.commands.executeCommand('i18n_toolbox.refresh');
+            vscode_1.commands.executeCommand('i18n_toolbox.openLangKey', childJsonPath);
         });
     });
-    vscode_1.commands.registerCommand('extension.rename', (treeViewItem) => {
+    vscode_1.commands.registerCommand('i18n_toolbox.rename', (treeViewItem) => {
         renameKey(treeViewItem);
-        vscode_1.commands.executeCommand('extension.refresh');
+        vscode_1.commands.executeCommand('i18n_toolbox.refresh');
     });
     context.subscriptions.push(translatorWebView());
     function translatorWebView() {
-        return vscode_1.commands.registerCommand('extension.openLangKey', (jsonPath) => {
+        return vscode_1.commands.registerCommand('i18n_toolbox.openLangKey', (jsonPath) => {
             openPanelAndGetLangText(jsonPath);
         });
     }
@@ -52,7 +52,7 @@ function activate(context) {
                 languagesFilesUrl = files.map((file) => utils_1.convertFilePath(file.path));
                 const keyLanguagesProvider = new key_languages_provider_1.KeyLanguagesProvider(languagesFilesUrl[0]);
                 vscode_1.window.registerTreeDataProvider(`${viewId}`, keyLanguagesProvider);
-                vscode_1.commands.registerCommand(`extension.refresh`, () => keyLanguagesProvider.refresh());
+                vscode_1.commands.registerCommand(`i18n_toolbox.refresh`, () => keyLanguagesProvider.refresh());
             });
         });
     }
@@ -71,7 +71,7 @@ function activate(context) {
     }
     function setConfigFile() {
         return __awaiter(this, void 0, void 0, function* () {
-            const globPattern = new vscode_1.RelativePattern(vscode_1.workspace.rootPath || '', 'i18nHelper.json');
+            const globPattern = new vscode_1.RelativePattern(vscode_1.workspace.rootPath || '', 'i18n-toolbox.json');
             yield vscode_1.workspace.findFiles(globPattern).then(files => {
                 if (files[0]) {
                     const userConfig = JSON.parse(fs_1.readFileSync(utils_1.convertFilePath(files[0].path), 'utf-8'));

@@ -10,7 +10,7 @@ import { KeyLanguagesItem } from './key-languages-item';
 
 // this method is called when the extension is activated ( the very first time the command is executed)
 export function activate(context: ExtensionContext) {
-    const viewId = 'translator';
+    const viewId = 'i18n-tooblox';
     let languagesFilesUrl: string[];
     const config: Config = {
         i18nFolder: '',
@@ -19,21 +19,21 @@ export function activate(context: ExtensionContext) {
     };
 
     findFilesAndParseJson();
-    commands.registerCommand('extension.addChild', (treeViewItem: KeyLanguagesItem) => {
+    commands.registerCommand('i18n_toolbox.addChild', (treeViewItem: KeyLanguagesItem) => {
         addChildKey(treeViewItem).then(childJsonPath => {
-            commands.executeCommand('extension.refresh');
-            commands.executeCommand('extension.openLangKey', childJsonPath);
+            commands.executeCommand('i18n_toolbox.refresh');
+            commands.executeCommand('i18n_toolbox.openLangKey', childJsonPath);
         });
     });
-    commands.registerCommand('extension.rename', (treeViewItem: KeyLanguagesItem) => {
+    commands.registerCommand('i18n_toolbox.rename', (treeViewItem: KeyLanguagesItem) => {
         renameKey(treeViewItem);
-        commands.executeCommand('extension.refresh');
+        commands.executeCommand('i18n_toolbox.refresh');
     });
 
     context.subscriptions.push(translatorWebView());
 
     function translatorWebView() {
-        return commands.registerCommand('extension.openLangKey', (jsonPath: string) => {
+        return commands.registerCommand('i18n_toolbox.openLangKey', (jsonPath: string) => {
             openPanelAndGetLangText(jsonPath);
         });
     }
@@ -50,7 +50,7 @@ export function activate(context: ExtensionContext) {
                 languagesFilesUrl = files.map((file: Uri) => convertFilePath(file.path));
                 const keyLanguagesProvider = new KeyLanguagesProvider(languagesFilesUrl[0]);
                 window.registerTreeDataProvider(`${viewId}`, keyLanguagesProvider);
-                commands.registerCommand(`extension.refresh`, () => keyLanguagesProvider.refresh());
+                commands.registerCommand(`i18n_toolbox.refresh`, () => keyLanguagesProvider.refresh());
             });
         });
     }
@@ -72,7 +72,7 @@ export function activate(context: ExtensionContext) {
         }
     }
     async function setConfigFile() {
-        const globPattern: GlobPattern = new RelativePattern(workspace.rootPath || '', 'i18nHelper.json');
+        const globPattern: GlobPattern = new RelativePattern(workspace.rootPath || '', 'i18n-toolbox.json');
         await workspace.findFiles(globPattern).then(files => {
             if (files[0]) {
                 const userConfig: Config = JSON.parse(readFileSync(convertFilePath(files[0].path), 'utf-8'));

@@ -65,7 +65,7 @@ export class LangFormPanel {
             and only allow scripts that have a specific nonce.-->
 
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Translator</title>
+                <title>i18n Tooblox</title>
             </head>
             <body>
             <style>
