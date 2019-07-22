@@ -17,23 +17,28 @@ export function activate(context: ExtensionContext) {
         searchI18nFile: true,
         defaultLanguage: ''
     };
-
     findFilesAndParseJson();
-    commands.registerCommand('i18n_toolbox.addChild', (treeViewItem: KeyLanguagesItem) => {
-        addChildKey(treeViewItem).then(childJsonPath => {
-            commands.executeCommand('i18n_toolbox.refresh');
-            commands.executeCommand('i18n_toolbox.openLangKey', childJsonPath);
-        });
-    });
-    commands.registerCommand('i18n_toolbox.rename', (treeViewItem: KeyLanguagesItem) => {
-        renameKey(treeViewItem);
-        commands.executeCommand('i18n_toolbox.refresh');
-    });
-
-    context.subscriptions.push(translatorWebView());
+    context.subscriptions.push(
+        commands.registerCommand('i18n_toolbox_addChild', (treeViewItem: KeyLanguagesItem) => {
+            addChildKey(treeViewItem).then(childJsonPath => {
+                commands.executeCommand('i18n_toolbox_refresh');
+                commands.executeCommand('i18n_toolbox_openLangKey', childJsonPath);
+            });
+        }),
+        commands.registerCommand('i18n_toolbox_rename', (treeViewItem: KeyLanguagesItem) => {
+            renameKey(treeViewItem);
+            commands.executeCommand('i18n_toolbox_refresh');
+        }),
+        translatorWebView(),
+        commands.registerCommand('i18n_toolbox_refresh_extension', () => {
+            commands.executeCommand('i18n_toolbox_refresh');
+        })
+       
+    );
+   
 
     function translatorWebView() {
-        return commands.registerCommand('i18n_toolbox.openLangKey', (jsonPath: string) => {
+        return commands.registerCommand('i18n_toolbox_openLangKey', (jsonPath: string) => {
             openPanelAndGetLangText(jsonPath);
         });
     }
@@ -50,7 +55,7 @@ export function activate(context: ExtensionContext) {
                 languagesFilesUrl = files.map((file: Uri) => convertFilePath(file.path));
                 const keyLanguagesProvider = new KeyLanguagesProvider(languagesFilesUrl[0]);
                 window.registerTreeDataProvider(`${viewId}`, keyLanguagesProvider);
-                commands.registerCommand(`i18n_toolbox.refresh`, () => keyLanguagesProvider.refresh());
+                commands.registerCommand(`i18n_toolbox_refresh`, () => keyLanguagesProvider.refresh());
             });
         });
     }
@@ -149,4 +154,5 @@ export function activate(context: ExtensionContext) {
     }
 }
 // this method is called when your extension is deactivated
-export function deactivate() {}
+export function deactivate() {
+}

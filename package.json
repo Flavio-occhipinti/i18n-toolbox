@@ -4,7 +4,7 @@
 	"description": "Extension vs code which allows to be more productive with i18n",
 	"icon": "ressources/extension-icon.png",
 	"publisher": "i18n-toolbox",
-	"version": "0.3.1",
+	"version": "0.3.8",
 	"author": {
 		"name": "Flavio Occhipinti",
 		"email": "flavio.occhipinti.96@gmail.com"
@@ -20,13 +20,12 @@
 		"Other"
 	],
 	"activationEvents": [
-		"onCommand:i18n-tooblox.refresh",
-		"workspaceContains:*.i18n.json"
+		"*"
 	],
 	"main": "./out/extension.js",
 	"contributes": {
 		"views": {
-			"package-explorer": [
+			"key-language-explorer": [
 				{
 					"id": "i18n-tooblox",
 					"name": "Explorer"
@@ -37,28 +36,28 @@
 			"activitybar": [
 				{
 					"icon": "ressources/testicon.png",
-					"id": "package-explorer",
+					"id": "key-language-explorer",
 					"title": "i18n Tooblox"
 				}
 			]
 		},
 		"commands": [
 			{
-				"command": "i18n_toolbox.openLangKey",
+				"command": "i18n_toolbox_openLangKey",
 				"title": "Open lang"
 			},
 			{
-				"command": "i18n_toolbox.addChild",
+				"command": "i18n_toolbox_addChild",
 				"title": "Add child",
 				"icon": "ressources/plus.png"
 			},
 			{
-				"command": "i18n_toolbox.rename",
+				"command": "i18n_toolbox_rename",
 				"title": "Rename",
 				"icon": "ressources/pencil.png"
 			},
 			{
-				"command": "i18n_toolbox.refresh",
+				"command": "i18n_toolbox_refresh_extension",
 				"title": "Refresh i18n Tooblox",
 				"icon": "ressources/sync.png"
 			}
@@ -66,23 +65,23 @@
 		"menus": {
 			"commandPalette": [
 				{
-					"command": "i18n_toolbox.refresh"
+					"command": "i18n_toolbox_refresh_extension"
 				}
 			],
 			"view/item/context": [
 				{
-					"command": "i18n_toolbox.addChild",
+					"command": "i18n_toolbox_addChild",
 					"group": "inline",
 					"when": "viewItem == folder"
 				},
 				{
-					"command": "i18n_toolbox.rename",
+					"command": "i18n_toolbox_rename",
 					"group": "inline"
 				}
 			],
 			"view/title": [
 				{
-					"command": "i18n_toolbox.refresh",
+					"command": "i18n_toolbox_refresh_extension",
 					"group": "navigation"
 				}
 			]
