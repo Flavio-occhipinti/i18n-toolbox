@@ -7,7 +7,6 @@ import { LanguageText } from './models/language-text';
 import { sortObj, convertFilePath } from './utils';
 import { KeyLanguagesItem } from './key-languages-item';
 
-
 // this method is called when the extension is activated ( the very first time the command is executed)
 export function activate(context: ExtensionContext) {
     const viewId = 'i18n-tooblox';
@@ -33,9 +32,7 @@ export function activate(context: ExtensionContext) {
         commands.registerCommand('i18n_toolbox_refresh_extension', () => {
             commands.executeCommand('i18n_toolbox_refresh');
         })
-       
     );
-   
 
     function translatorWebView() {
         return commands.registerCommand('i18n_toolbox_openLangKey', (jsonPath: string) => {
@@ -55,16 +52,23 @@ export function activate(context: ExtensionContext) {
                 languagesFilesUrl = files.map((file: Uri) => convertFilePath(file.path));
                 const keyLanguagesProvider = new KeyLanguagesProvider(languagesFilesUrl[0]);
                 window.registerTreeDataProvider(`${viewId}`, keyLanguagesProvider);
+
+                if (!config.defaultLanguage) {
+                   config.defaultLanguage =  getFileName( languagesFilesUrl[0]);
+                }
+
                 commands.registerCommand(`i18n_toolbox_refresh`, () => keyLanguagesProvider.refresh());
             });
         });
     }
     function openPanelAndGetLangText(jsonPath: string) {
-        let langJson: LanguageText[] = languagesFilesUrl.map(fileUrl => ({
-            lang: fileUrl.substring(fileUrl.lastIndexOf('/') + 1, fileUrl.lastIndexOf('.i18n.')),
-            text: jsonPath.split('.').reduce((prev, curr) => (prev && prev[curr]) || '', JSON.parse(readFileSync(fileUrl, 'utf-8'))),
-            jsonPath: jsonPath
-        }));
+        let langJson: LanguageText[] = languagesFilesUrl.map(fileUrl => {
+            return {
+                lang: getFileName(fileUrl),
+                text: jsonPath.split('.').reduce((prev, curr) => (prev && prev[curr]) || '', JSON.parse(readFileSync(fileUrl, 'utf-8'))),
+                jsonPath: jsonPath
+            };
+        });
         const panel = LangFormPanel.createOrShow(context.extensionPath, langJson);
         if (panel) {
             panel._panel.webview.onDidReceiveMessage(
@@ -132,7 +136,9 @@ export function activate(context: ExtensionContext) {
     }
     function editKeyValue(messages: LanguageText[]) {
         messages.forEach(message => {
-            const filePath = languagesFilesUrl.find(languagueFile => languagueFile.indexOf(message.lang + '.i18n.json') > 0);
+            const filePath = languagesFilesUrl.find(
+                languagueFile => languagueFile.indexOf(message.lang + (config.searchI18nFile ? '.i18n' : '') + '.json') > 0
+            );
             if (filePath) {
                 const fileJson = JSON.parse(readFileSync(filePath, 'utf-8'));
                 message.jsonPath.split('.').reduce((p, c, i, arr) => {
@@ -152,7 +158,10 @@ export function activate(context: ExtensionContext) {
             }
         });
     }
+    function getFileName(path: string) {
+        const fileName = path.substring(path.lastIndexOf('/') + 1, path.lastIndexOf('.json'));
+        return fileName.substring(0, fileName.indexOf('.i18n')) || fileName;
+    }
 }
 // this method is called when your extension is deactivated
-export function deactivate() {
-}
+export function deactivate() {}

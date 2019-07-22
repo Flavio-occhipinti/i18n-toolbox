@@ -52,16 +52,21 @@ function activate(context) {
                 languagesFilesUrl = files.map((file) => utils_1.convertFilePath(file.path));
                 const keyLanguagesProvider = new key_languages_provider_1.KeyLanguagesProvider(languagesFilesUrl[0]);
                 vscode_1.window.registerTreeDataProvider(`${viewId}`, keyLanguagesProvider);
+                if (!config.defaultLanguage) {
+                    config.defaultLanguage = getFileName(languagesFilesUrl[0]);
+                }
                 vscode_1.commands.registerCommand(`i18n_toolbox_refresh`, () => keyLanguagesProvider.refresh());
             });
         });
     }
     function openPanelAndGetLangText(jsonPath) {
-        let langJson = languagesFilesUrl.map(fileUrl => ({
-            lang: fileUrl.substring(fileUrl.lastIndexOf('/') + 1, fileUrl.lastIndexOf('.i18n.')),
-            text: jsonPath.split('.').reduce((prev, curr) => (prev && prev[curr]) || '', JSON.parse(fs_1.readFileSync(fileUrl, 'utf-8'))),
-            jsonPath: jsonPath
-        }));
+        let langJson = languagesFilesUrl.map(fileUrl => {
+            return {
+                lang: getFileName(fileUrl),
+                text: jsonPath.split('.').reduce((prev, curr) => (prev && prev[curr]) || '', JSON.parse(fs_1.readFileSync(fileUrl, 'utf-8'))),
+                jsonPath: jsonPath
+            };
+        });
         const panel = edit_panel_1.LangFormPanel.createOrShow(context.extensionPath, langJson);
         if (panel) {
             panel._panel.webview.onDidReceiveMessage(message => {
@@ -129,7 +134,7 @@ function activate(context) {
     }
     function editKeyValue(messages) {
         messages.forEach(message => {
-            const filePath = languagesFilesUrl.find(languagueFile => languagueFile.indexOf(message.lang + '.i18n.json') > 0);
+            const filePath = languagesFilesUrl.find(languagueFile => languagueFile.indexOf(message.lang + (config.searchI18nFile ? '.i18n' : '') + '.json') > 0);
             if (filePath) {
                 const fileJson = JSON.parse(fs_1.readFileSync(filePath, 'utf-8'));
                 message.jsonPath.split('.').reduce((p, c, i, arr) => {
@@ -151,10 +156,13 @@ function activate(context) {
             }
         });
     }
+    function getFileName(path) {
+        const fileName = path.substring(path.lastIndexOf('/') + 1, path.lastIndexOf('.json'));
+        return fileName.substring(0, fileName.indexOf('.i18n')) || fileName;
+    }
 }
 exports.activate = activate;
 // this method is called when your extension is deactivated
-function deactivate() {
-}
+function deactivate() { }
 exports.deactivate = deactivate;
 //# sourceMappingURL=extension.js.map

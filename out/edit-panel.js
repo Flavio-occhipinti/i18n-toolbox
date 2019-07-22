@@ -77,6 +77,7 @@ class LangFormPanel {
         padding: 7px;
         margin: auto;
         border-radius: 10px;
+        cursor : pointer;
       }
     </style>
     <div class="container">
@@ -93,7 +94,7 @@ class LangFormPanel {
                 const vscode = acquireVsCodeApi();
                 function onSave() {
                     const inputs = [...document.getElementsByTagName('textarea')];
-                   
+
                     vscode.postMessage(inputs.map(input => {
                         return {
                             lang : input.name, 
