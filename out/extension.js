@@ -33,6 +33,9 @@ function activate(context) {
         vscode_1.commands.executeCommand('i18n_toolbox_refresh');
     }), translatorWebView(), vscode_1.commands.registerCommand('i18n_toolbox_refresh_extension', () => {
         vscode_1.commands.executeCommand('i18n_toolbox_refresh');
+    }), vscode_1.commands.registerCommand('i18n_toolbox_delete_key', (treeViewItem) => {
+        deleteKey(treeViewItem);
+        vscode_1.commands.executeCommand('i18n_toolbox_refresh');
     }));
     function translatorWebView() {
         return vscode_1.commands.registerCommand('i18n_toolbox_openLangKey', (jsonPath) => {
@@ -89,22 +92,36 @@ function activate(context) {
     }
     function addChildKey(treeViewItem) {
         return __awaiter(this, void 0, void 0, function* () {
-            let jsonPath = treeViewItem.jsonPath ? treeViewItem.jsonPath + '.' + treeViewItem.label : treeViewItem.label;
+            let jsonPath = treeViewItem ? (treeViewItem.jsonPath ? treeViewItem.jsonPath + '.' + treeViewItem.label : treeViewItem.label) : '';
             yield vscode_1.window.showInputBox().then(data => {
                 if (data) {
                     const newKey = data.toUpperCase().replace(' ', '_');
-                    languagesFilesUrl.forEach(languagesFileUrl => {
-                        const fileJson = JSON.parse(fs_1.readFileSync(languagesFileUrl, 'utf-8'));
-                        jsonPath.split('.').reduce((p, c, i, arr) => {
-                            if (i === arr.length - 1) {
-                                p[c][newKey] = '';
+                    editLangFiles((fileJson) => {
+                        if (jsonPath) {
+                            jsonPath.split('.').reduce((p, c, i, arr) => {
+                                if (i === arr.length - 1) {
+                                    if (p[c][newKey]) {
+                                        vscode_1.window.showErrorMessage('This key already exists');
+                                    }
+                                    else {
+                                        p[c][newKey] = '';
+                                        jsonPath += '.' + newKey;
+                                    }
+                                }
+                                return p[c];
+                            }, fileJson);
+                        }
+                        else {
+                            if (fileJson[newKey]) {
+                                vscode_1.window.showErrorMessage('This key already exists');
                             }
-                            return p[c];
-                        }, fileJson);
-                        const sortFileJson = utils_1.sortObj(fileJson);
-                        fs_1.writeFileSync(languagesFileUrl, JSON.stringify(sortFileJson, null, '    '), { encoding: 'utf-8' });
+                            else {
+                                fileJson[newKey] = '';
+                                jsonPath = newKey;
+                            }
+                        }
+                        return fileJson;
                     });
-                    jsonPath += '.' + newKey;
                 }
             });
             return jsonPath;
@@ -114,11 +131,11 @@ function activate(context) {
         const jsonPath = treeViewItem.jsonPath ? treeViewItem.jsonPath + '.' + treeViewItem.label : treeViewItem.label;
         vscode_1.window.showInputBox().then(data => {
             if (data) {
-                languagesFilesUrl.forEach(languagesFileUrl => {
-                    const fileJson = JSON.parse(fs_1.readFileSync(languagesFileUrl, 'utf-8'));
+                const newKey = data.toUpperCase().replace(' ', '_');
+                editLangFiles((fileJson) => {
                     jsonPath.split('.').reduce((p, c, i, arr) => {
                         if (i === arr.length - 1) {
-                            p[data.toUpperCase().replace(' ', '_')] = p[c];
+                            p[newKey] = p[c];
                             delete p[c];
                         }
                         else {
@@ -126,10 +143,24 @@ function activate(context) {
                         }
                         return p[c];
                     }, fileJson);
-                    const sortFileJson = utils_1.sortObj(fileJson);
-                    fs_1.writeFileSync(languagesFileUrl, JSON.stringify(sortFileJson, null, '    '), { encoding: 'utf-8' });
+                    return fileJson;
                 });
             }
+        });
+    }
+    function deleteKey(treeViewItem) {
+        const jsonPath = treeViewItem.jsonPath ? treeViewItem.jsonPath + '.' + treeViewItem.label : treeViewItem.label;
+        editLangFiles((fileJson) => {
+            jsonPath.split('.').reduce((p, c, i, arr) => {
+                if (i === arr.length - 1) {
+                    delete p[c];
+                }
+                else {
+                    p[c] = p[c] || {};
+                }
+                return p[c];
+            }, fileJson);
+            return fileJson;
         });
     }
     function editKeyValue(messages) {
@@ -154,6 +185,14 @@ function activate(context) {
                 const sortFileJson = utils_1.sortObj(fileJson);
                 fs_1.writeFileSync(filePath, JSON.stringify(sortFileJson, null, '    '), { encoding: 'utf-8' });
             }
+        });
+    }
+    function editLangFiles(editMethod) {
+        languagesFilesUrl.forEach(languagesFileUrl => {
+            let fileJson = JSON.parse(fs_1.readFileSync(languagesFileUrl, 'utf-8'));
+            fileJson = editMethod(fileJson);
+            const sortFileJson = utils_1.sortObj(fileJson);
+            fs_1.writeFileSync(languagesFileUrl, JSON.stringify(sortFileJson, null, '    '), { encoding: 'utf-8' });
         });
     }
     function getFileName(path) {

@@ -57,6 +57,11 @@
 				"icon": "ressources/pencil.png"
 			},
 			{
+				"command": "i18n_toolbox_delete_key",
+				"title": "Delete",
+				"icon": "ressources/times.png"
+			},
+			{
 				"command": "i18n_toolbox_refresh_extension",
 				"title": "Refresh i18n Tooblox",
 				"icon": "ressources/sync.png"
@@ -70,6 +75,10 @@
 			],
 			"view/item/context": [
 				{
+					"command": "i18n_toolbox_delete_key",
+					"group": "inline"
+				},
+				{
 					"command": "i18n_toolbox_addChild",
 					"group": "inline",
 					"when": "viewItem == folder"
@@ -82,6 +91,10 @@
 			"view/title": [
 				{
 					"command": "i18n_toolbox_refresh_extension",
+					"group": "navigation"
+				},
+				{
+					"command": "i18n_toolbox_addChild",
 					"group": "navigation"
 				}
 			]

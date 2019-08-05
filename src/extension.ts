@@ -6,6 +6,7 @@ import { LangFormPanel } from './edit-panel';
 import { LanguageText } from './models/language-text';
 import { sortObj, convertFilePath } from './utils';
 import { KeyLanguagesItem } from './key-languages-item';
+import { FileJSON } from './models/file-json';
 
 // this method is called when the extension is activated ( the very first time the command is executed)
 export function activate(context: ExtensionContext) {
@@ -31,6 +32,10 @@ export function activate(context: ExtensionContext) {
         translatorWebView(),
         commands.registerCommand('i18n_toolbox_refresh_extension', () => {
             commands.executeCommand('i18n_toolbox_refresh');
+        }),
+        commands.registerCommand('i18n_toolbox_delete_key', (treeViewItem: KeyLanguagesItem) => {
+            deleteKey(treeViewItem);
+            commands.executeCommand('i18n_toolbox_refresh');
         })
     );
 
@@ -54,7 +59,7 @@ export function activate(context: ExtensionContext) {
                 window.registerTreeDataProvider(`${viewId}`, keyLanguagesProvider);
 
                 if (!config.defaultLanguage) {
-                   config.defaultLanguage =  getFileName( languagesFilesUrl[0]);
+                    config.defaultLanguage = getFileName(languagesFilesUrl[0]);
                 }
 
                 commands.registerCommand(`i18n_toolbox_refresh`, () => keyLanguagesProvider.refresh());
@@ -93,22 +98,33 @@ export function activate(context: ExtensionContext) {
     }
 
     async function addChildKey(treeViewItem: KeyLanguagesItem) {
-        let jsonPath = treeViewItem.jsonPath ? treeViewItem.jsonPath + '.' + treeViewItem.label : treeViewItem.label;
+        let jsonPath = treeViewItem ? (treeViewItem.jsonPath ? treeViewItem.jsonPath + '.' + treeViewItem.label : treeViewItem.label) : '';
         await window.showInputBox().then(data => {
             if (data) {
                 const newKey = data.toUpperCase().replace(' ', '_');
-                languagesFilesUrl.forEach(languagesFileUrl => {
-                    const fileJson = JSON.parse(readFileSync(languagesFileUrl, 'utf-8'));
-                    jsonPath.split('.').reduce((p, c, i, arr) => {
-                        if (i === arr.length - 1) {
-                            p[c][newKey] = '';
+                editLangFiles((fileJson: FileJSON) => {
+                    if (jsonPath) {
+                        jsonPath.split('.').reduce((p: FileJSON, c, i, arr) => {
+                            if (i === arr.length - 1) {
+                                if ((p[c] as FileJSON)[newKey]) {
+                                    window.showErrorMessage('This key already exists');
+                                } else {
+                                    (p[c] as FileJSON)[newKey] = '';
+                                    jsonPath += '.' + newKey;
+                                }
+                            }
+                            return p[c] as FileJSON;
+                        }, fileJson);
+                    } else {
+                        if (fileJson[newKey]) {
+                            window.showErrorMessage('This key already exists');
+                        } else {
+                            fileJson[newKey] = '';
+                            jsonPath = newKey;
                         }
-                        return p[c];
-                    }, fileJson);
-                    const sortFileJson = sortObj(fileJson);
-                    writeFileSync(languagesFileUrl, JSON.stringify(sortFileJson, null, '    '), { encoding: 'utf-8' });
+                    }
+                    return fileJson;
                 });
-                jsonPath += '.' + newKey;
             }
         });
         return jsonPath;
@@ -117,23 +133,37 @@ export function activate(context: ExtensionContext) {
         const jsonPath = treeViewItem.jsonPath ? treeViewItem.jsonPath + '.' + treeViewItem.label : treeViewItem.label;
         window.showInputBox().then(data => {
             if (data) {
-                languagesFilesUrl.forEach(languagesFileUrl => {
-                    const fileJson = JSON.parse(readFileSync(languagesFileUrl, 'utf-8'));
-                    jsonPath.split('.').reduce((p, c, i, arr) => {
+                const newKey = data.toUpperCase().replace(' ', '_');
+                editLangFiles((fileJson: FileJSON) => {
+                    jsonPath.split('.').reduce((p: FileJSON, c, i, arr) => {
                         if (i === arr.length - 1) {
-                            p[data.toUpperCase().replace(' ', '_')] = p[c];
+                            p[newKey] = p[c];
                             delete p[c];
                         } else {
                             p[c] = p[c] || {};
                         }
-                        return p[c];
+                        return p[c] as FileJSON;
                     }, fileJson);
-                    const sortFileJson = sortObj(fileJson);
-                    writeFileSync(languagesFileUrl, JSON.stringify(sortFileJson, null, '    '), { encoding: 'utf-8' });
+                    return fileJson;
                 });
             }
         });
     }
+    function deleteKey(treeViewItem: KeyLanguagesItem) {
+        const jsonPath = treeViewItem.jsonPath ? treeViewItem.jsonPath + '.' + treeViewItem.label : treeViewItem.label;
+        editLangFiles((fileJson: FileJSON) => {
+            jsonPath.split('.').reduce((p: FileJSON, c, i, arr) => {
+                if (i === arr.length - 1) {
+                    delete p[c];
+                } else {
+                    p[c] = p[c] || {};
+                }
+                return p[c] as FileJSON;
+            }, fileJson);
+            return fileJson;
+        });
+    }
+
     function editKeyValue(messages: LanguageText[]) {
         messages.forEach(message => {
             const filePath = languagesFilesUrl.find(
@@ -156,6 +186,14 @@ export function activate(context: ExtensionContext) {
                 const sortFileJson = sortObj(fileJson);
                 writeFileSync(filePath, JSON.stringify(sortFileJson, null, '    '), { encoding: 'utf-8' });
             }
+        });
+    }
+    function editLangFiles(editMethod: Function) {
+        languagesFilesUrl.forEach(languagesFileUrl => {
+            let fileJson = JSON.parse(readFileSync(languagesFileUrl, 'utf-8'));
+            fileJson = editMethod(fileJson);
+            const sortFileJson = sortObj(fileJson);
+            writeFileSync(languagesFileUrl, JSON.stringify(sortFileJson, null, '    '), { encoding: 'utf-8' });
         });
     }
     function getFileName(path: string) {
