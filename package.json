@@ -35,7 +35,7 @@
 		"viewsContainers": {
 			"activitybar": [
 				{
-					"icon": "ressources/testicon.png",
+					"icon": "ressources/logo.png",
 					"id": "key-language-explorer",
 					"title": "i18n Tooblox"
 				}
