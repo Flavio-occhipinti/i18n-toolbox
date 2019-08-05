@@ -31,17 +31,14 @@ function activate(context) {
     }), vscode_1.commands.registerCommand('i18n_toolbox_rename', (treeViewItem) => {
         renameKey(treeViewItem);
         vscode_1.commands.executeCommand('i18n_toolbox_refresh');
-    }), translatorWebView(), vscode_1.commands.registerCommand('i18n_toolbox_refresh_extension', () => {
+    }), vscode_1.commands.registerCommand('i18n_toolbox_openLangKey', (jsonPath) => {
+        openPanelAndGetLangText(jsonPath);
+    }), vscode_1.commands.registerCommand('i18n_toolbox_refresh_extension', () => {
         vscode_1.commands.executeCommand('i18n_toolbox_refresh');
     }), vscode_1.commands.registerCommand('i18n_toolbox_delete_key', (treeViewItem) => {
         deleteKey(treeViewItem);
         vscode_1.commands.executeCommand('i18n_toolbox_refresh');
     }));
-    function translatorWebView() {
-        return vscode_1.commands.registerCommand('i18n_toolbox_openLangKey', (jsonPath) => {
-            openPanelAndGetLangText(jsonPath);
-        });
-    }
     function findFilesAndParseJson() {
         setConfigFile().then(() => {
             let globPattern;
@@ -64,11 +61,21 @@ function activate(context) {
     }
     function openPanelAndGetLangText(jsonPath) {
         let langJson = languagesFilesUrl.map(fileUrl => {
-            return {
-                lang: getFileName(fileUrl),
-                text: jsonPath.split('.').reduce((prev, curr) => (prev && prev[curr]) || '', JSON.parse(fs_1.readFileSync(fileUrl, 'utf-8'))),
-                jsonPath: jsonPath
-            };
+            try {
+                return {
+                    lang: getFileName(fileUrl),
+                    text: jsonPath.split('.').reduce((prev, curr) => (prev && prev[curr]) || '', JSON.parse(fs_1.readFileSync(fileUrl, 'utf-8'))),
+                    jsonPath: jsonPath
+                };
+            }
+            catch (e) {
+                vscode_1.window.showErrorMessage('Cannot read the file ' + fileUrl);
+                return {
+                    lang: getFileName(fileUrl),
+                    jsonPath: jsonPath,
+                    text: ''
+                };
+            }
         });
         const panel = edit_panel_1.LangFormPanel.createOrShow(context.extensionPath, langJson);
         if (panel) {

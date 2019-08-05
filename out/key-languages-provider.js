@@ -45,7 +45,7 @@ class KeyLanguagesProvider {
                     return new key_languages_item_1.KeyLanguagesItem(key, vscode_1.TreeItemCollapsibleState.None, jsonPath || "", {
                         command: 'i18n_toolbox_openLangKey',
                         title: 'Open Languages Key',
-                        arguments: [jsonPath + "." + key]
+                        arguments: [jsonPath ? (jsonPath + "." + key) : key]
                     });
                 }
                 return new key_languages_item_1.KeyLanguagesItem(key, vscode_1.TreeItemCollapsibleState.Collapsed, jsonPath || "");

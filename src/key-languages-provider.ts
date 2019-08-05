@@ -46,7 +46,7 @@ export class KeyLanguagesProvider implements TreeDataProvider<KeyLanguagesItem> 
                     return new KeyLanguagesItem(key, TreeItemCollapsibleState.None, jsonPath || "", {
 						command: 'i18n_toolbox_openLangKey',
 						title: 'Open Languages Key',
-						arguments: [jsonPath + "." +key]
+						arguments: [jsonPath ? (jsonPath + "." + key) : key]
 					});
                 }
 

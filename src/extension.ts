@@ -29,7 +29,9 @@ export function activate(context: ExtensionContext) {
             renameKey(treeViewItem);
             commands.executeCommand('i18n_toolbox_refresh');
         }),
-        translatorWebView(),
+        commands.registerCommand('i18n_toolbox_openLangKey', (jsonPath: string) => {
+            openPanelAndGetLangText(jsonPath);
+        }),
         commands.registerCommand('i18n_toolbox_refresh_extension', () => {
             commands.executeCommand('i18n_toolbox_refresh');
         }),
@@ -38,12 +40,6 @@ export function activate(context: ExtensionContext) {
             commands.executeCommand('i18n_toolbox_refresh');
         })
     );
-
-    function translatorWebView() {
-        return commands.registerCommand('i18n_toolbox_openLangKey', (jsonPath: string) => {
-            openPanelAndGetLangText(jsonPath);
-        });
-    }
 
     function findFilesAndParseJson() {
         setConfigFile().then(() => {
@@ -68,11 +64,20 @@ export function activate(context: ExtensionContext) {
     }
     function openPanelAndGetLangText(jsonPath: string) {
         let langJson: LanguageText[] = languagesFilesUrl.map(fileUrl => {
-            return {
-                lang: getFileName(fileUrl),
-                text: jsonPath.split('.').reduce((prev, curr) => (prev && prev[curr]) || '', JSON.parse(readFileSync(fileUrl, 'utf-8'))),
-                jsonPath: jsonPath
-            };
+            try {
+                return {
+                    lang: getFileName(fileUrl),
+                    text: jsonPath.split('.').reduce((prev, curr) => (prev && prev[curr]) || '', JSON.parse(readFileSync(fileUrl, 'utf-8'))),
+                    jsonPath: jsonPath
+                };
+            } catch (e) {
+                window.showErrorMessage('Cannot read the file ' + fileUrl);
+                return {
+                    lang: getFileName(fileUrl),
+                    jsonPath: jsonPath,
+                    text : ''
+                };
+            }
         });
         const panel = LangFormPanel.createOrShow(context.extensionPath, langJson);
         if (panel) {
