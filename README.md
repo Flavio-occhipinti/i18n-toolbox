@@ -30,7 +30,7 @@ On every file update, the JSON will be sorted alphabetically.
 
 ## On the side bar view
 
-![features demonstation](https://github.com/Flavio-occhipinti/i18n-toolbox/blob/master/ressources/readme/features.png)
+![features demonstation](ressources/readme/features.png)
 
 Actions : 
 - Add root key 
@@ -43,7 +43,7 @@ Actions :
 
 When you click on the key in the tree-view, the edit panel appears. You can see the full path of the key, and the text in each language.
 
-![edit panel demonstration](https://github.com/Flavio-occhipinti/i18n-toolbox/blob/master/ressources/readme/edit-panel.png)
+![edit panel demonstration](ressources/readme/edit-panel.png)
 
 You can edit the text in each language and save it.
 
