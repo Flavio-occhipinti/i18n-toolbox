@@ -1,12 +1,14 @@
+import { join } from 'path';
+
 export function convertFilePath(filePath: string) {
-    return filePath.substring(1);
+    return join(filePath);
 }
 export function sortObj(obj: any) {
     let sortedObj: any = {};
     if (isPlainObject(obj)) {
         Object.keys(obj)
             .sort()
-            .forEach((key) =>  {
+            .forEach(key => {
                 sortedObj[key] = sortObj(obj[key]);
             });
     } else {

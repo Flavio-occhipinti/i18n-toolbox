@@ -75,7 +75,7 @@ export function activate(context: ExtensionContext) {
                 return {
                     lang: getFileName(fileUrl),
                     jsonPath: jsonPath,
-                    text : ''
+                    text: ''
                 };
             }
         });
@@ -95,6 +95,7 @@ export function activate(context: ExtensionContext) {
         await workspace.findFiles(globPattern).then(files => {
             if (files[0]) {
                 const userConfig: Config = JSON.parse(readFileSync(convertFilePath(files[0].path), 'utf-8'));
+                console.log(convertFilePath(files[0].path));
                 config.i18nFolder = `${workspace.rootPath}/${userConfig.i18nFolder}`;
                 config.searchI18nFile = userConfig.searchI18nFile;
                 config.defaultLanguage = userConfig.defaultLanguage;

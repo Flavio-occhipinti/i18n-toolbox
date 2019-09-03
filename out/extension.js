@@ -90,6 +90,7 @@ function activate(context) {
             yield vscode_1.workspace.findFiles(globPattern).then(files => {
                 if (files[0]) {
                     const userConfig = JSON.parse(fs_1.readFileSync(utils_1.convertFilePath(files[0].path), 'utf-8'));
+                    console.log(utils_1.convertFilePath(files[0].path));
                     config.i18nFolder = `${vscode_1.workspace.rootPath}/${userConfig.i18nFolder}`;
                     config.searchI18nFile = userConfig.searchI18nFile;
                     config.defaultLanguage = userConfig.defaultLanguage;
