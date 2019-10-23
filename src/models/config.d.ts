@@ -1,5 +1,6 @@
-export default interface Config{
+export default interface Config {
     searchI18nFile: boolean;
     i18nFolder: string;
-    defaultLanguage : string;
-} 
+    defaultLanguage: string;
+    writeMissingKey: boolean;
+}

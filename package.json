@@ -1,121 +1,121 @@
 {
-	"name": "i18n-toolbox",
-	"displayName": "I18n Toolbox",
-	"description": "Extension vs code which allows to be more productive with i18n",
-	"icon": "ressources/extension-icon.png",
-	"publisher": "i18n-toolbox",
-	"version": "0.4.2",
-	"author": {
-		"name": "Flavio Occhipinti",
-		"email": "flavio.occhipinti.96@gmail.com"
-	},
-	"repository": {
-		"type": "git",
-		"url": "https://github.com/Flavio-occhipinti/i18n-toolbox.git"
-	},
-	"engines": {
-		"vscode": "^1.34.0"
-	},
-	"categories": [
-		"Other"
-	],
-	"activationEvents": [
-		"*"
-	],
-	"main": "./out/extension.js",
-	"contributes": {
-		"views": {
-			"key-language-explorer": [
-				{
-					"id": "i18n-tooblox",
-					"name": "Explorer"
-				}
-			]
-		},
-		"viewsContainers": {
-			"activitybar": [
-				{
-					"icon": "ressources/logo.png",
-					"id": "key-language-explorer",
-					"title": "i18n Tooblox"
-				}
-			]
-		},
-		"commands": [
-			{
-				"command": "i18n_toolbox_openLangKey",
-				"title": "Open lang"
-			},
-			{
-				"command": "i18n_toolbox_addChild",
-				"title": "Add child",
-				"icon": "ressources/plus.png"
-			},
-			{
-				"command": "i18n_toolbox_rename",
-				"title": "Rename",
-				"icon": "ressources/pencil.png"
-			},
-			{
-				"command": "i18n_toolbox_delete_key",
-				"title": "Delete",
-				"icon": "ressources/times.png"
-			},
-			{
-				"command": "i18n_toolbox_refresh_extension",
-				"title": "Refresh i18n Tooblox",
-				"icon": "ressources/sync.png"
-			}
-		],
-		"menus": {
-			"commandPalette": [
-				{
-					"command": "i18n_toolbox_refresh_extension"
-				}
-			],
-			"view/item/context": [
-				{
-					"command": "i18n_toolbox_delete_key",
-					"group": "inline"
-				},
-				{
-					"command": "i18n_toolbox_addChild",
-					"group": "inline",
-					"when": "viewItem == folder"
-				},
-				{
-					"command": "i18n_toolbox_rename",
-					"group": "inline"
-				}
-			],
-			"view/title": [
-				{
-					"command": "i18n_toolbox_refresh_extension",
-					"group": "navigation"
-				},
-				{
-					"command": "i18n_toolbox_addChild",
-					"group": "navigation"
-				}
-			]
-		}
-	},
-	"scripts": {
-		"vscode:prepublish": "npm run compile",
-		"compile": "tsc -p ./",
-		"watch": "tsc -watch -p ./",
-		"postinstall": "node ./node_modules/vscode/bin/install",
-		"test": "npm run compile && node ./node_modules/vscode/bin/test"
-	},
-	"devDependencies": {
-		"typescript": "^3.3.1",
-		"vscode": "^1.1.28",
-		"tslint": "^5.12.1",
-		"@types/node": "^10.12.21",
-		"@types/mocha": "^2.2.42"
-	},
-	"dependencies": {
-		"js-sha256": "^0.9.0",
-		"jsonc-parser": "^2.1.0"
-	}
+    "name": "i18n-toolbox",
+    "displayName": "I18n Toolbox",
+    "description": "Extension vs code which allows to be more productive with i18n",
+    "icon": "ressources/extension-icon.png",
+    "publisher": "i18n-toolbox",
+    "version": "0.5.2",
+    "author": {
+        "name": "Flavio Occhipinti",
+        "email": "flavio.occhipinti.96@gmail.com"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Flavio-occhipinti/i18n-toolbox.git"
+    },
+    "engines": {
+        "vscode": "^1.34.0"
+    },
+    "categories": [
+        "Other"
+    ],
+    "activationEvents": [
+        "*"
+    ],
+    "main": "./out/extension.js",
+    "contributes": {
+        "views": {
+            "key-language-explorer": [
+                {
+                    "id": "i18n-tooblox",
+                    "name": "Explorer"
+                }
+            ]
+        },
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "icon": "ressources/logo.png",
+                    "id": "key-language-explorer",
+                    "title": "i18n Tooblox"
+                }
+            ]
+        },
+        "commands": [
+            {
+                "command": "i18n_toolbox_openLangKey",
+                "title": "Open lang"
+            },
+            {
+                "command": "i18n_toolbox_addChild",
+                "title": "Add child",
+                "icon": "ressources/plus.png"
+            },
+            {
+                "command": "i18n_toolbox_rename",
+                "title": "Rename",
+                "icon": "ressources/pencil.png"
+            },
+            {
+                "command": "i18n_toolbox_delete_key",
+                "title": "Delete",
+                "icon": "ressources/times.png"
+            },
+            {
+                "command": "i18n_toolbox_refresh_extension",
+                "title": "Refresh i18n Tooblox",
+                "icon": "ressources/sync.png"
+            }
+        ],
+        "menus": {
+            "commandPalette": [
+                {
+                    "command": "i18n_toolbox_refresh_extension"
+                }
+            ],
+            "view/item/context": [
+                {
+                    "command": "i18n_toolbox_delete_key",
+                    "group": "inline"
+                },
+                {
+                    "command": "i18n_toolbox_addChild",
+                    "group": "inline",
+                    "when": "viewItem == folder"
+                },
+                {
+                    "command": "i18n_toolbox_rename",
+                    "group": "inline"
+                }
+            ],
+            "view/title": [
+                {
+                    "command": "i18n_toolbox_refresh_extension",
+                    "group": "navigation"
+                },
+                {
+                    "command": "i18n_toolbox_addChild",
+                    "group": "navigation"
+                }
+            ]
+        }
+    },
+    "scripts": {
+        "vscode:prepublish": "npm run compile",
+        "compile": "tsc -p ./",
+        "watch": "tsc -watch -p ./",
+        "postinstall": "node ./node_modules/vscode/bin/install",
+        "test": "npm run compile && node ./node_modules/vscode/bin/test"
+    },
+    "devDependencies": {
+        "typescript": "^3.3.1",
+        "vscode": "^1.1.28",
+        "tslint": "^5.12.1",
+        "@types/node": "^10.12.21",
+        "@types/mocha": "^2.2.42"
+    },
+    "dependencies": {
+        "js-sha256": "^0.9.0",
+        "jsonc-parser": "^2.1.0"
+    }
 }

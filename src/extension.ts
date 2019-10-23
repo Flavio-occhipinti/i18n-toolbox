@@ -4,7 +4,7 @@ import { KeyLanguagesProvider } from './key-languages-provider';
 import Config from './models/config';
 import { LangFormPanel } from './edit-panel';
 import { LanguageText } from './models/language-text';
-import { sortObj, convertFilePath } from './utils';
+import { sortObj, convertFilePath, isPlainObject } from './utils';
 import { KeyLanguagesItem } from './key-languages-item';
 import { FileJSON } from './models/file-json';
 
@@ -15,7 +15,8 @@ export function activate(context: ExtensionContext) {
     const config: Config = {
         i18nFolder: '',
         searchI18nFile: true,
-        defaultLanguage: ''
+        defaultLanguage: '',
+        writeMissingKey: false
     };
     findFilesAndParseJson();
     context.subscriptions.push(
@@ -58,7 +59,10 @@ export function activate(context: ExtensionContext) {
                     config.defaultLanguage = getFileName(languagesFilesUrl[0]);
                 }
 
-                commands.registerCommand(`i18n_toolbox_refresh`, () => keyLanguagesProvider.refresh());
+                commands.registerCommand(`i18n_toolbox_refresh`, () => {
+                    cleanFiles();
+                    keyLanguagesProvider.refresh();
+                });
             });
         });
     }
@@ -95,10 +99,10 @@ export function activate(context: ExtensionContext) {
         await workspace.findFiles(globPattern).then(files => {
             if (files[0]) {
                 const userConfig: Config = JSON.parse(readFileSync(convertFilePath(files[0].path), 'utf-8'));
-                console.log(convertFilePath(files[0].path));
                 config.i18nFolder = `${workspace.rootPath}/${userConfig.i18nFolder}`;
                 config.searchI18nFile = userConfig.searchI18nFile;
                 config.defaultLanguage = userConfig.defaultLanguage;
+                config.writeMissingKey = userConfig.writeMissingKey;
             }
         });
     }
@@ -172,9 +176,7 @@ export function activate(context: ExtensionContext) {
 
     function editKeyValue(messages: LanguageText[]) {
         messages.forEach(message => {
-            const filePath = languagesFilesUrl.find(
-                languagueFile => languagueFile.indexOf(message.lang + (config.searchI18nFile ? '.i18n' : '') + '.json') > 0
-            );
+            const filePath = languagesFilesUrl.find(languagueFile => isLangFile(languagueFile, message.lang));
             if (filePath) {
                 const fileJson = JSON.parse(readFileSync(filePath, 'utf-8'));
                 message.jsonPath.split('.').reduce((p, c, i, arr) => {
@@ -205,6 +207,35 @@ export function activate(context: ExtensionContext) {
     function getFileName(path: string) {
         const fileName = path.substring(path.lastIndexOf('/') + 1, path.lastIndexOf('.json'));
         return fileName.substring(0, fileName.indexOf('.i18n')) || fileName;
+    }
+    function cleanFiles() {
+        let defaultLangJson = JSON.parse(readFileSync(languagesFilesUrl.find(fileUrl => isLangFile(fileUrl, config.defaultLanguage)) as string, 'utf-8'));
+
+        languagesFilesUrl.forEach(fileUrl => {
+            if (!isLangFile(fileUrl, config.defaultLanguage)) {
+                let fileJson: FileJSON = JSON.parse(readFileSync(fileUrl, 'utf-8'));
+                writeFileSync(fileUrl, JSON.stringify(unifyObj(defaultLangJson, fileJson), null, '    '), { encoding: 'utf-8' });
+            }
+        });
+    }
+    function unifyObj(defaultLangJson: FileJSON, jsonToUnify: FileJSON) {
+        let sortedObj: any = {};
+        if (isPlainObject(defaultLangJson)) {
+            Object.keys(defaultLangJson)
+                .sort()
+                .forEach(key => {
+                    if (jsonToUnify[key] || config.writeMissingKey) {
+                        sortedObj[key] = unifyObj(defaultLangJson[key] as FileJSON, jsonToUnify[key] as FileJSON);
+                    }
+                });
+        } else {
+            sortedObj = jsonToUnify || '';
+        }
+        return sortedObj;
+    }
+
+    function isLangFile(fileUrl: string, lang: string) {
+        return fileUrl.indexOf(lang + (config.searchI18nFile ? '.i18n' : '') + '.json') !== -1;
     }
 }
 // this method is called when your extension is deactivated

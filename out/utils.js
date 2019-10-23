@@ -1,7 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
+const path_1 = require("path");
 function convertFilePath(filePath) {
-    return filePath.substring(1);
+    return path_1.join(filePath);
 }
 exports.convertFilePath = convertFilePath;
 function sortObj(obj) {
@@ -9,7 +10,7 @@ function sortObj(obj) {
     if (isPlainObject(obj)) {
         Object.keys(obj)
             .sort()
-            .forEach((key) => {
+            .forEach(key => {
             sortedObj[key] = sortObj(obj[key]);
         });
     }

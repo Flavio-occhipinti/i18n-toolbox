@@ -20,7 +20,8 @@ function activate(context) {
     const config = {
         i18nFolder: '',
         searchI18nFile: true,
-        defaultLanguage: ''
+        defaultLanguage: '',
+        writeMissingKey: false
     };
     findFilesAndParseJson();
     context.subscriptions.push(vscode_1.commands.registerCommand('i18n_toolbox_addChild', (treeViewItem) => {
@@ -55,7 +56,10 @@ function activate(context) {
                 if (!config.defaultLanguage) {
                     config.defaultLanguage = getFileName(languagesFilesUrl[0]);
                 }
-                vscode_1.commands.registerCommand(`i18n_toolbox_refresh`, () => keyLanguagesProvider.refresh());
+                vscode_1.commands.registerCommand(`i18n_toolbox_refresh`, () => {
+                    cleanFiles();
+                    keyLanguagesProvider.refresh();
+                });
             });
         });
     }
@@ -90,10 +94,10 @@ function activate(context) {
             yield vscode_1.workspace.findFiles(globPattern).then(files => {
                 if (files[0]) {
                     const userConfig = JSON.parse(fs_1.readFileSync(utils_1.convertFilePath(files[0].path), 'utf-8'));
-                    console.log(utils_1.convertFilePath(files[0].path));
                     config.i18nFolder = `${vscode_1.workspace.rootPath}/${userConfig.i18nFolder}`;
                     config.searchI18nFile = userConfig.searchI18nFile;
                     config.defaultLanguage = userConfig.defaultLanguage;
+                    config.writeMissingKey = userConfig.writeMissingKey;
                 }
             });
         });
@@ -173,7 +177,7 @@ function activate(context) {
     }
     function editKeyValue(messages) {
         messages.forEach(message => {
-            const filePath = languagesFilesUrl.find(languagueFile => languagueFile.indexOf(message.lang + (config.searchI18nFile ? '.i18n' : '') + '.json') > 0);
+            const filePath = languagesFilesUrl.find(languagueFile => isLangFile(languagueFile, message.lang));
             if (filePath) {
                 const fileJson = JSON.parse(fs_1.readFileSync(filePath, 'utf-8'));
                 message.jsonPath.split('.').reduce((p, c, i, arr) => {
@@ -206,6 +210,34 @@ function activate(context) {
     function getFileName(path) {
         const fileName = path.substring(path.lastIndexOf('/') + 1, path.lastIndexOf('.json'));
         return fileName.substring(0, fileName.indexOf('.i18n')) || fileName;
+    }
+    function cleanFiles() {
+        let defaultLangJson = JSON.parse(fs_1.readFileSync(languagesFilesUrl.find(fileUrl => isLangFile(fileUrl, config.defaultLanguage)), 'utf-8'));
+        languagesFilesUrl.forEach(fileUrl => {
+            if (!isLangFile(fileUrl, config.defaultLanguage)) {
+                let fileJson = JSON.parse(fs_1.readFileSync(fileUrl, 'utf-8'));
+                fs_1.writeFileSync(fileUrl, JSON.stringify(unifyObj(defaultLangJson, fileJson), null, '    '), { encoding: 'utf-8' });
+            }
+        });
+    }
+    function unifyObj(defaultLangJson, jsonToUnify) {
+        let sortedObj = {};
+        if (utils_1.isPlainObject(defaultLangJson)) {
+            Object.keys(defaultLangJson)
+                .sort()
+                .forEach(key => {
+                if (jsonToUnify[key] || config.writeMissingKey) {
+                    sortedObj[key] = unifyObj(defaultLangJson[key], jsonToUnify[key]);
+                }
+            });
+        }
+        else {
+            sortedObj = jsonToUnify || '';
+        }
+        return sortedObj;
+    }
+    function isLangFile(fileUrl, lang) {
+        return fileUrl.indexOf(lang + (config.searchI18nFile ? '.i18n' : '') + '.json') !== -1;
     }
 }
 exports.activate = activate;
