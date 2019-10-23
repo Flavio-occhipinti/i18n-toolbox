@@ -209,7 +209,10 @@ export function activate(context: ExtensionContext) {
         return fileName.substring(0, fileName.indexOf('.i18n')) || fileName;
     }
     function cleanFiles() {
-        let defaultLangJson = JSON.parse(readFileSync(languagesFilesUrl.find(fileUrl => isLangFile(fileUrl, config.defaultLanguage)) as string, 'utf-8'));
+        const defaultLangFilePath = languagesFilesUrl.find(fileUrl => isLangFile(fileUrl, config.defaultLanguage)) as string;
+        let defaultLangJson = JSON.parse(readFileSync(defaultLangFilePath, 'utf-8'));
+
+        writeFileSync(defaultLangFilePath, JSON.stringify(sortObj(defaultLangJson), null, '    '), { encoding: 'utf-8' });
 
         languagesFilesUrl.forEach(fileUrl => {
             if (!isLangFile(fileUrl, config.defaultLanguage)) {
@@ -225,7 +228,11 @@ export function activate(context: ExtensionContext) {
                 .sort()
                 .forEach(key => {
                     if (jsonToUnify[key] || config.writeMissingKey) {
-                        sortedObj[key] = unifyObj(defaultLangJson[key] as FileJSON, jsonToUnify[key] as FileJSON);
+                        let fileToUnify = jsonToUnify[key];
+                        if (!fileToUnify && config.writeMissingKey && isPlainObject(defaultLangJson[key])) {
+                            fileToUnify = {};
+                        }
+                        sortedObj[key] = unifyObj(defaultLangJson[key] as FileJSON, fileToUnify as FileJSON);
                     }
                 });
         } else {

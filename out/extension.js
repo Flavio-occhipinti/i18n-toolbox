@@ -212,7 +212,9 @@ function activate(context) {
         return fileName.substring(0, fileName.indexOf('.i18n')) || fileName;
     }
     function cleanFiles() {
-        let defaultLangJson = JSON.parse(fs_1.readFileSync(languagesFilesUrl.find(fileUrl => isLangFile(fileUrl, config.defaultLanguage)), 'utf-8'));
+        const defaultLangFilePath = languagesFilesUrl.find(fileUrl => isLangFile(fileUrl, config.defaultLanguage));
+        let defaultLangJson = JSON.parse(fs_1.readFileSync(defaultLangFilePath, 'utf-8'));
+        fs_1.writeFileSync(defaultLangFilePath, JSON.stringify(utils_1.sortObj(defaultLangJson), null, '    '), { encoding: 'utf-8' });
         languagesFilesUrl.forEach(fileUrl => {
             if (!isLangFile(fileUrl, config.defaultLanguage)) {
                 let fileJson = JSON.parse(fs_1.readFileSync(fileUrl, 'utf-8'));
@@ -227,7 +229,11 @@ function activate(context) {
                 .sort()
                 .forEach(key => {
                 if (jsonToUnify[key] || config.writeMissingKey) {
-                    sortedObj[key] = unifyObj(defaultLangJson[key], jsonToUnify[key]);
+                    let fileToUnify = jsonToUnify[key];
+                    if (!fileToUnify && config.writeMissingKey && utils_1.isPlainObject(defaultLangJson[key])) {
+                        fileToUnify = {};
+                    }
+                    sortedObj[key] = unifyObj(defaultLangJson[key], fileToUnify);
                 }
             });
         }
