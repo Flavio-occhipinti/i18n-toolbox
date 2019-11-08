@@ -1,5 +1,5 @@
-import { WebviewPanel, Disposable, ViewColumn, window } from "vscode";
-import { LanguageText } from "./models/language-text";
+import { WebviewPanel, Disposable, ViewColumn, window } from 'vscode';
+import { LanguageText } from './models/language-text';
 export class LangFormPanel {
     readonly _panel: WebviewPanel;
     private _disposables: Disposable[] = [];
@@ -94,9 +94,9 @@ export class LangFormPanel {
             ${langsText
                 .map(
                     langs =>
-                        `${langs.lang} <textarea type="text" name="${langs.lang}" onchange="${this._panel.webview.postMessage('refactor')}" >${
-                            langs.text
-                        }</textarea>  <br/>`
+                        `${langs.lang} <textarea type="text" name="${langs.lang}" onchange="${this._panel.webview.postMessage('refactor')}" >${langs.text
+                            .split('&nbsp;')
+                            .join('&amp;nbsp;')}</textarea>  <br/>`
                 )
                 .join('')}
                 <button class="save-button" onclick="onSave()">Save</button>

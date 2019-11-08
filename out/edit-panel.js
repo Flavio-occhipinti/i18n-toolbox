@@ -84,7 +84,9 @@ class LangFormPanel {
             <span class="center">Key : ${langsText[0].jsonPath} </span> <br/>
 
             ${langsText
-            .map(langs => `${langs.lang} <textarea type="text" name="${langs.lang}" onchange="${this._panel.webview.postMessage('refactor')}" >${langs.text}</textarea>  <br/>`)
+            .map(langs => `${langs.lang} <textarea type="text" name="${langs.lang}" onchange="${this._panel.webview.postMessage('refactor')}" >${langs.text
+            .split('&nbsp;')
+            .join('&amp;nbsp;')}</textarea>  <br/>`)
             .join('')}
                 <button class="save-button" onclick="onSave()">Save</button>
                 </div>
