@@ -1,3 +1,3 @@
-export interface FileJSON {
-   [key : string ] : FileJSON | string; 
-}
+export type FileJSON = {
+    [key: string]: FileJSON | string;
+};

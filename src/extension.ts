@@ -1,12 +1,13 @@
-import { commands, ExtensionContext, window, workspace, GlobPattern, RelativePattern, Uri } from 'vscode';
 import { readFileSync, writeFileSync } from 'fs';
+import { commands, ExtensionContext, GlobPattern, Position, Range, RelativePattern, Uri, window, workspace } from 'vscode';
+import { LangFormPanel } from './edit-panel';
+import { KeyLanguagesItem } from './key-languages-item';
 import { KeyLanguagesProvider } from './key-languages-provider';
 import Config from './models/config';
-import { LangFormPanel } from './edit-panel';
-import { LanguageText } from './models/language-text';
-import { sortObj, convertFilePath, isPlainObject } from './utils';
-import { KeyLanguagesItem } from './key-languages-item';
 import { FileJSON } from './models/file-json';
+import { KeysLangs } from './models/keys-lang';
+import { LanguageText } from './models/language-text';
+import { convertFilePath, isPlainObject, sortObj } from './utils';
 
 // this method is called when the extension is activated ( the very first time the command is executed)
 export function activate(context: ExtensionContext) {
@@ -16,12 +17,12 @@ export function activate(context: ExtensionContext) {
         i18nFolder: '',
         searchI18nFile: true,
         defaultLanguage: '',
-        writeMissingKey: false
+        writeMissingKey: false,
     };
     findFilesAndParseJson();
     context.subscriptions.push(
         commands.registerCommand('i18n_toolbox_addChild', (treeViewItem: KeyLanguagesItem) => {
-            addChildKey(treeViewItem).then(childJsonPath => {
+            addChildKey(treeViewItem).then((childJsonPath) => {
                 commands.executeCommand('i18n_toolbox_refresh');
                 commands.executeCommand('i18n_toolbox_openLangKey', childJsonPath);
             });
@@ -39,6 +40,9 @@ export function activate(context: ExtensionContext) {
         commands.registerCommand('i18n_toolbox_delete_key', (treeViewItem: KeyLanguagesItem) => {
             deleteKey(treeViewItem);
             commands.executeCommand('i18n_toolbox_refresh');
+        }),
+        commands.registerCommand('i18n_toolbox_search_empty_key', () => {
+            openPanelAndGetEmptyKeys();
         })
     );
 
@@ -50,7 +54,7 @@ export function activate(context: ExtensionContext) {
             } else {
                 globPattern = new RelativePattern(config.i18nFolder || '', '**/*.json');
             }
-            workspace.findFiles(globPattern).then(files => {
+            workspace.findFiles(globPattern).then((files) => {
                 languagesFilesUrl = files.map((file: Uri) => convertFilePath(file.path));
                 const keyLanguagesProvider = new KeyLanguagesProvider(languagesFilesUrl[0]);
                 window.registerTreeDataProvider(`${viewId}`, keyLanguagesProvider);
@@ -67,36 +71,80 @@ export function activate(context: ExtensionContext) {
         });
     }
     function openPanelAndGetLangText(jsonPath: string) {
-        let langJson: LanguageText[] = languagesFilesUrl.map(fileUrl => {
+        let langJson: LanguageText[] = languagesFilesUrl.map((fileUrl) => {
             try {
                 return {
                     lang: getFileName(fileUrl),
                     text: jsonPath.split('.').reduce((prev, curr) => (prev && prev[curr]) || '', JSON.parse(readFileSync(fileUrl, 'utf-8'))),
-                    jsonPath: jsonPath
+                    jsonPath: jsonPath,
                 };
             } catch (e) {
                 window.showErrorMessage('Cannot read the file ' + fileUrl);
                 return {
                     lang: getFileName(fileUrl),
                     jsonPath: jsonPath,
-                    text: ''
+                    text: '',
                 };
             }
         });
         const panel = LangFormPanel.createOrShow(context.extensionPath, langJson);
-        if (panel) {
-            panel._panel.webview.onDidReceiveMessage(
-                message => {
-                    editKeyValue(message);
-                },
-                undefined,
-                context.subscriptions
-            );
+        panel && webviewListener(panel);
+    }
+    function openPanelAndGetEmptyKeys() {
+        if (languagesFilesUrl) {
+            const emptyKeys: KeysLangs = {};
+            languagesFilesUrl.forEach((filePath) => {
+                const fileJson = JSON.parse(readFileSync(filePath, 'utf-8'));
+                const lang = getLangFile(filePath);
+                emptyKeys[lang] = [];
+                exploreJson(fileJson, (key: string, value: string, line: number, jsonPath: string) => {
+                    if (!value) {
+                        emptyKeys[lang].push({
+                            key,
+                            line,
+                            jsonPath,
+                        });
+                    }
+                });
+            });
+
+            const panel = LangFormPanel.createOrShow(context.extensionPath, undefined, emptyKeys);
+            panel && webviewListener(panel);
+        } else {
+            window.showErrorMessage('Files not yet loaded');
         }
+    }
+    function webviewListener(panel: LangFormPanel) {
+        panel._panel.webview.onDidReceiveMessage(
+            (action: { command: 'openFile' | 'openEditValue' | 'editValue'; payload: any; lang: string; line: number; jsonPath: string }) => {
+                switch (action.command) {
+                    case 'openEditValue':
+                        commands.executeCommand('i18n_toolbox_openLangKey', action.jsonPath);
+                        break;
+                    case 'openFile':
+                        const path = getFullPathUrl(action.lang);
+                        if (path) {
+                            workspace.openTextDocument(path).then((doc) => {
+                                window.showTextDocument(doc).then((file) => {
+                                    file.revealRange(new Range(new Position(+action.line, 4), new Position(+action.line, 4)), 1);
+                                });
+                            });
+                        } else {
+                            window.showErrorMessage('File not found');
+                        }
+                        break;
+                    case 'editValue':
+                        editKeyValue(action.payload);
+                        break;
+                }
+            },
+            undefined,
+            context.subscriptions
+        );
     }
     async function setConfigFile() {
         const globPattern: GlobPattern = new RelativePattern(workspace.rootPath || '', 'i18n-toolbox.json');
-        await workspace.findFiles(globPattern).then(files => {
+        await workspace.findFiles(globPattern).then((files) => {
             if (files[0]) {
                 const userConfig: Config = JSON.parse(readFileSync(convertFilePath(files[0].path), 'utf-8'));
                 config.i18nFolder = `${workspace.rootPath}/${userConfig.i18nFolder}`;
@@ -109,7 +157,7 @@ export function activate(context: ExtensionContext) {
 
     async function addChildKey(treeViewItem: KeyLanguagesItem) {
         let jsonPath = treeViewItem ? (treeViewItem.jsonPath ? treeViewItem.jsonPath + '.' + treeViewItem.label : treeViewItem.label) : '';
-        await window.showInputBox().then(data => {
+        await window.showInputBox().then((data) => {
             if (data) {
                 const newKey = data.toUpperCase().replace(' ', '_');
                 editLangFiles((fileJson: FileJSON) => {
@@ -141,7 +189,7 @@ export function activate(context: ExtensionContext) {
     }
     function renameKey(treeViewItem: KeyLanguagesItem) {
         const jsonPath = treeViewItem.jsonPath ? treeViewItem.jsonPath + '.' + treeViewItem.label : treeViewItem.label;
-        window.showInputBox().then(data => {
+        window.showInputBox().then((data) => {
             if (data) {
                 const newKey = data.toUpperCase().replace(' ', '_');
                 editLangFiles((fileJson: FileJSON) => {
@@ -175,8 +223,8 @@ export function activate(context: ExtensionContext) {
     }
 
     function editKeyValue(messages: LanguageText[]) {
-        messages.forEach(message => {
-            const filePath = languagesFilesUrl.find(languagueFile => isLangFile(languagueFile, message.lang));
+        messages.forEach((message) => {
+            const filePath = languagesFilesUrl.find((languagueFile) => isLangFile(languagueFile, message.lang));
             if (filePath) {
                 const fileJson = JSON.parse(readFileSync(filePath, 'utf-8'));
                 message.jsonPath.split('.').reduce((p, c, i, arr) => {
@@ -184,7 +232,11 @@ export function activate(context: ExtensionContext) {
                         if (message.text || message.lang === config.defaultLanguage) {
                             p[c] = message.text;
                         } else {
-                            delete p[c];
+                            if (config.writeMissingKey) {
+                                p[c] = '';
+                            } else {
+                                delete p[c];
+                            }
                         }
                     } else {
                         p[c] = p[c] || {};
@@ -197,7 +249,7 @@ export function activate(context: ExtensionContext) {
         });
     }
     function editLangFiles(editMethod: Function) {
-        languagesFilesUrl.forEach(languagesFileUrl => {
+        languagesFilesUrl.forEach((languagesFileUrl) => {
             let fileJson = JSON.parse(readFileSync(languagesFileUrl, 'utf-8'));
             fileJson = editMethod(fileJson);
             const sortFileJson = sortObj(fileJson);
@@ -209,24 +261,39 @@ export function activate(context: ExtensionContext) {
         return fileName.substring(0, fileName.indexOf('.i18n')) || fileName;
     }
     function cleanFiles() {
-        const defaultLangFilePath = languagesFilesUrl.find(fileUrl => isLangFile(fileUrl, config.defaultLanguage)) as string;
+        const defaultLangFilePath = languagesFilesUrl.find((fileUrl) => isLangFile(fileUrl, config.defaultLanguage)) as string;
         let defaultLangJson = JSON.parse(readFileSync(defaultLangFilePath, 'utf-8'));
 
         writeFileSync(defaultLangFilePath, JSON.stringify(sortObj(defaultLangJson), null, '    '), { encoding: 'utf-8' });
 
-        languagesFilesUrl.forEach(fileUrl => {
+        languagesFilesUrl.forEach((fileUrl) => {
             if (!isLangFile(fileUrl, config.defaultLanguage)) {
                 let fileJson: FileJSON = JSON.parse(readFileSync(fileUrl, 'utf-8'));
                 writeFileSync(fileUrl, JSON.stringify(unifyObj(defaultLangJson, fileJson), null, '    '), { encoding: 'utf-8' });
             }
         });
     }
+    function exploreJson(json: FileJSON, keyValueFunc: Function, lineNumber?: number, key?: string, jsonPath?: string) {
+        let line = lineNumber || 1;
+        if (isPlainObject(json)) {
+            Object.keys(json)
+                .sort()
+                .forEach((key, index) => {
+                    line++;
+                    line = exploreJson(json[key] as FileJSON, keyValueFunc, line, key, (jsonPath ? jsonPath + '.' : '') + key);
+                });
+            line++;
+        } else {
+            keyValueFunc(key, json, line, jsonPath);
+        }
+        return line;
+    }
     function unifyObj(defaultLangJson: FileJSON, jsonToUnify: FileJSON) {
         let sortedObj: any = {};
         if (isPlainObject(defaultLangJson)) {
             Object.keys(defaultLangJson)
                 .sort()
-                .forEach(key => {
+                .forEach((key) => {
                     if (jsonToUnify[key] || config.writeMissingKey) {
                         let fileToUnify = jsonToUnify[key];
                         if (!fileToUnify && config.writeMissingKey && isPlainObject(defaultLangJson[key])) {
@@ -241,8 +308,14 @@ export function activate(context: ExtensionContext) {
         return sortedObj;
     }
 
+    function getFullPathUrl(lang: string) {
+        return languagesFilesUrl.find((fileUrl) => fileUrl.indexOf(lang + (config.searchI18nFile ? '.i18n' : '') + '.json') !== -1);
+    }
     function isLangFile(fileUrl: string, lang: string) {
         return fileUrl.indexOf(lang + (config.searchI18nFile ? '.i18n' : '') + '.json') !== -1;
+    }
+    function getLangFile(fileUrl: string) {
+        return fileUrl.substring(fileUrl.lastIndexOf('/') + 1, fileUrl.lastIndexOf((config.searchI18nFile ? '.i18n' : '') + '.json'));
     }
 }
 // this method is called when your extension is deactivated

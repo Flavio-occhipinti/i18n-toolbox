@@ -47,6 +47,11 @@
                 "title": "Open lang"
             },
             {
+                "command": "i18n_toolbox_search_empty_key",
+                "title": "Get empty keys",
+                "icon": "ressources/user-edit.png"
+            },
+            {
                 "command": "i18n_toolbox_addChild",
                 "title": "Add child",
                 "icon": "ressources/plus.png"
@@ -95,6 +100,10 @@
                 },
                 {
                     "command": "i18n_toolbox_addChild",
+                    "group": "navigation"
+                },
+                {
+                    "command": "i18n_toolbox_search_empty_key",
                     "group": "navigation"
                 }
             ]
