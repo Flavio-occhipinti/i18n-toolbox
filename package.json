@@ -4,7 +4,7 @@
     "description": "Extension vs code which allows to be more productive with i18n",
     "icon": "ressources/extension-icon.png",
     "publisher": "i18n-toolbox",
-    "version": "0.7.0",
+    "version": "0.8.0",
     "author": {
         "name": "Flavio Occhipinti",
         "email": "flavio.occhipinti.96@gmail.com"
